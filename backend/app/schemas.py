@@ -26,20 +26,11 @@ class FilterCondition(BaseModel):
     operator: FilterOperator
     value: Optional[TypedValue] = None
 
-    def get_columns(self) -> Set[str]:
-        return {self.column}
-
 
 class ComposedFilterCondition(BaseModel):
     left_condition: Union[FilterCondition, "ComposedFilterCondition"]
     operator: CompositionOperator
     right_condition: Optional[Union[FilterCondition, "ComposedFilterCondition"]] = None
-
-    def get_columns(self) -> Set[str]:
-        cols = self.left_condition.get_columns()
-        if self.right_condition:
-            cols = cols.union(self.right_condition.get_columns())
-        return cols
 
 
 def get_columns(condition: Union[FilterCondition, ComposedFilterCondition, None]) -> Set[str]:
