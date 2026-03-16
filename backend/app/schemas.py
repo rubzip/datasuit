@@ -54,7 +54,7 @@ class OrderItem(BaseModel):
 
 
 class Query(BaseModel):
-    select: Select
+    select: List[str] = []
     where: Optional[Union[FilterCondition, ComposedFilterCondition]] = None
     order_by: Optional[List[OrderItem]] = None
     limit: Optional[int] = None
