@@ -42,6 +42,19 @@ class ComposedFilterCondition(BaseModel):
         return cols
 
 
+def get_columns(condition: Union[FilterCondition, ComposedFilterCondition, None]) -> Set[str]:
+    if condition is None:
+        return set()
+    if isinstance(condition, FilterCondition):
+        return {condition.column}
+    if isinstance(condition, ComposedFilterCondition):
+        cols = get_columns(condition.left_condition)
+        if self.right_condition:
+            cols = cols.union(get_columns(right_condition))
+        return cols
+    raise 
+
+
 # -- Order By ---
 
 class OrderItem(BaseModel):
