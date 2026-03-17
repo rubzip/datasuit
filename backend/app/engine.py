@@ -7,8 +7,6 @@ def get(df: pd.DataFrame, q: Query) -> pd.DataFrame:
     
     if q.where:
         pass
-    if q.select:
-        pass
     if q.dropna:
         pass
     if q.drop_duplicates:
@@ -26,8 +24,6 @@ def get_code(df: pd.DataFrame, q: Query) -> List[str]:
     out = []
     
     if q.where:
-        pass
-    if q.select:
         pass
     if q.dropna:
         pass

@@ -4,13 +4,7 @@ from enum import Enum
 import pandas as pd
 from pydantic import BaseModel
 
-from app.constants import AcceptedTypes, FilterOperator, CompositionOperator
-
-
-### --- Select --- ###
-
-class Select(BaseModel):
-    columns: List[str]
+from app.core.constants import AcceptedTypes, FilterOperator, CompositionOperator
 
 
 ### --- Where --- ###
@@ -31,6 +25,9 @@ class ComposedFilterCondition(BaseModel):
     left_condition: Union[FilterCondition, "ComposedFilterCondition"]
     operator: CompositionOperator
     right_condition: Optional[Union[FilterCondition, "ComposedFilterCondition"]] = None
+
+
+ComposedFilterCondition.model_rebuild()
 
 
 def get_columns(condition: Union[FilterCondition, ComposedFilterCondition, None]) -> Set[str]:
@@ -70,6 +67,3 @@ class Transform(BaseModel):
 class DatasetResponse(BaseModel):
     data: Dict[str, List[Any]]
     types: Dict[str, AcceptedTypes]
-
-
-ComposedFilterCondition.model_rebuild()

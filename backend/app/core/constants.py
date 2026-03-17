@@ -24,6 +24,7 @@ class FilterOperator(Enum):
     IS_NOT_IN = "not_in"
     IS_NULL = "is_null"
     IS_NOT_NULL = "is_not_null"
+    IDENTITY = "identity"
 
 
 class CompositionOperator(Enum):
