@@ -4,13 +4,13 @@ from app.core.constants import FilterOperator, CompositionOperator, OperatorType
 from app.schemas.base import TypedValue, TypedList
 
 
-class BaseCondition(BaseModel):
+class BaseConditionSchema(BaseModel):
     operator: OperatorType
 
-class BaseSingleCondition(BaseModel):
+class BaseSingleConditionSchema(BaseModel):
     column: str
 
-class ComparisonCondition(BaseSingleCondition):
+class ComparisonConditionSchema(BaseSingleConditionSchema):
     operator: Literal[
         FilterOperator.EQUAL, 
         FilterOperator.NOT_EQUAL,
@@ -26,30 +26,30 @@ class ComparisonCondition(BaseSingleCondition):
     ]
     value: TypedValue
 
-class NullCheckCondition(BaseSingleCondition):
+class NullCheckConditionSchema(BaseSingleConditionSchema):
     operator: Literal[
         FilterOperator.IS_NULL, 
         FilterOperator.IS_NOT_NULL,
     ]
 
-class MembershipCondition(BaseSingleCondition):
+class MembershipConditionSchema(BaseSingleConditionSchema):
     operator: Literal[
         FilterOperator.IS_IN, 
         FilterOperator.IS_NOT_IN
     ]
     values: TypedList
 
-SingleCondition = Union[
-    ComparisonCondition, 
-    NullCheckCondition, 
-    MembershipCondition
+SingleConditionSchema = Union[
+    ComparisonConditionSchema, 
+    NullCheckConditionSchema, 
+    MembershipConditionSchema
 ]
 
-class CompositeCondition(BaseCondition):
-    left_condition: Union[SingleCondition, "CompositeCondition"]
+class CompositeConditionSchema(BaseConditionSchema):
+    left_condition: Union[SingleConditionSchema, "CompositeConditionSchema"]
     operator: CompositionOperator
-    right_condition: Optional[Union[SingleCondition, "CompositeCondition"]] = None
+    right_condition: Optional[Union[SingleConditionSchema, "CompositeConditionSchema"]] = None
 
-CompositeCondition.model_rebuild()
+CompositeConditionSchema.model_rebuild()
 
-ConditionType = Union[SingleCondition, CompositeCondition]
+ConditionTypeSchema = Union[SingleConditionSchema, CompositeConditionSchema]

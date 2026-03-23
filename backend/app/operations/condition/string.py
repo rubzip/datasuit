@@ -16,15 +16,6 @@ class ContainsCondition(StringCondition):
         return df[self.column].str.contains(self.value)
 
 
-class DoesNotContainCondition(StringCondition):
-    METHOD = "contains"
-    def apply(self, df: pd.DataFrame) -> pd.Series[bool]:
-        return ~df[self.column].str.contains(self.value)
-
-    def __str__(self):
-        return f"~df['{self.column}'].str.{self.METHOD}('{self.value}')"
-
-
 class StartsWithCondition(StringCondition):
     METHOD = "startswith"
     def apply(self, df: pd.DataFrame) -> pd.Series[bool]:

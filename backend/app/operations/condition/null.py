@@ -1,3 +1,7 @@
+import pandas as pd
+from app.operations.condition.base import ColumnCondition
+
+
 class NullabilityCondition(ColumnCondition):
     METHOD =  ""
     def __init__(self, column, value = None):

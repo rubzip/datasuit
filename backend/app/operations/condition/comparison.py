@@ -1,5 +1,4 @@
 from app.operations.condition.base import ColumnCondition
-from app.core.constants import AcceptedTypes
 import pandas as pd
 
 
