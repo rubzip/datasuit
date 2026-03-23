@@ -1,9 +1,9 @@
 from typing import List, Set
 import pandas as pd
-from app.actions.base import Action
+from app.operations.base import Operation
 
 
-class SelectAction(Action):
+class SelectOperation(Operation):
     def __init__(self, columns: List[str] = None, limit: int = None):
         self.columns = columns
         self.limit = limit
@@ -12,8 +12,8 @@ class SelectAction(Action):
         out = df.copy()
         if self.columns:
             out = out[self.columns]
-        if self.limit:
-            out = out.head()
+        if self.limit is not None:
+            out = out.head(self.limit)
         return out
 
     def to_code(self) -> List[str]:

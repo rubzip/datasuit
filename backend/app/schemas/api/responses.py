@@ -1,10 +1,6 @@
 from typing import List, Optional, Any, Dict
 from pydantic import BaseModel
-
-
-class DatasetResponse(BaseModel):
-    data: Dict[str, List[Any]]
-    types: Dict[str, AcceptedTypes]
+from app.core.constants import AcceptedTypes
 
 class ColumnStats(BaseModel):
     count: int
@@ -14,8 +10,13 @@ class ColumnStats(BaseModel):
     min: Optional[Any] = None
     max: Optional[Any] = None
 
-class DataHealthReport(BaseModel):
+class DataHealthReportResponse(BaseModel):
     total_rows: int
     total_columns: int
     memory_usage: str
     columns: Dict[str, ColumnStats]
+
+class DatasetPreviewResponse(BaseModel):
+    data: Dict[str, List[Any]]
+    types: Dict[str, AcceptedTypes]
+    health: Optional[DataHealthReportResponse] = None

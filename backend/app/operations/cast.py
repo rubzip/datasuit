@@ -1,10 +1,10 @@
-from typing import Any, List, Set
+from typing import Set
 import pandas as pd
-from app.actions.base import Action
+from app.operations.base import Operation
 from app.core.constants import AcceptedTypes
 
 
-class CastAction(Action):
+class CastOperation(Operation):
     def __init__(self, column: str, to_type: AcceptedTypes):
         self.column = column
         self.to_type = to_type

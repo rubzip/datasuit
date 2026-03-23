@@ -1,4 +1,5 @@
 from enum import StrEnum
+from typing import Union
 
 
 class AcceptedTypes(StrEnum):
@@ -31,3 +32,5 @@ class CompositionOperator(StrEnum):
     AND = "and"
     OR = "or"
     NOT = "not"
+
+OperatorType = Union[FilterOperator, CompositionOperator]

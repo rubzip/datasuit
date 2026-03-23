@@ -27,11 +27,11 @@ class BaseComponent(ABC):
         return '\n'.join(self.to_code())
 
 
-class Action(BaseComponent):
+class Operation(BaseComponent):
     pass
 
 
-class Mask(BaseComponent):
+class Condition(BaseComponent):
     @abstractmethod
     def apply(self, df: pd.DataFrame) -> pd.Series[bool]:
         """Applies logic to DataFrame."""

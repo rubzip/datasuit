@@ -1,9 +1,9 @@
 from typing import List, Set
 import pandas as pd
-from app.actions.base import Action
+from app.operations.base import Operation
 
 
-class BaseDrop(Action):
+class BaseDropOperation(Operation):
     METHOD_NAME = ""
     def __init__(self, columns: List[str] = None):
         self.columns = columns
@@ -15,14 +15,14 @@ class BaseDrop(Action):
         subset = f"subset={self.columns}" if self.columns else ""
         return [f"df = df.{self.METHOD_NAME}({subset})"]
 
-class DropNARows(BaseDrop):
+class DropNAOperation(BaseDropOperation):
     METHOD_NAME = "dropna"
     def apply(self, df: pd.DataFrame) -> pd.DataFrame:
         if self.columns:
             return df.dropna(subset=self.columns)
         return df.dropna()
 
-class DropDuplicates(BaseDrop):
+class DropDuplicatesOperation(BaseDropOperation):
     METHOD_NAME = "drop_duplicates"
     def apply(self, df: pd.DataFrame) -> pd.DataFrame:
         if self.columns:
