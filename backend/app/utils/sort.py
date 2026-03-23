@@ -25,5 +25,5 @@ class SortAction(BaseAction):
 
     def get_used_columns(self) -> Set[str]:
         if self.columns:
-            return set(self.columns)
+            return {self.columns}
         return set()
