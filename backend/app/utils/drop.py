@@ -1,4 +1,5 @@
 from typing import List, Set
+import pandas as pd
 from backend.app.utils.base import BaseAction
 
 
@@ -10,7 +11,7 @@ class BaseDrop(BaseAction):
         return set(self.columns)
 
 class DropNARows(BaseDrop):
-    def apply(self, df: DataFrame) -> pd.DataFrame:
+    def apply(self, df: pd.DataFrame) -> pd.DataFrame:
         if self.columns:
             return df.dropna(subset=self.columns)
         return df.dropna()
@@ -20,7 +21,7 @@ class DropNARows(BaseDrop):
         return f"df = df.dropna({subset})"
 
 class DropDuplicates(BaseDrop):
-    def apply(self, df: DataFrame) -> pd.DataFrame:
+    def apply(self, df: pd.DataFrame) -> pd.DataFrame:
         if self.columns:
             return df.drop_duplicates(subset=self.columns)
         return df.drop_duplicates()
