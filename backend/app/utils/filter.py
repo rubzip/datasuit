@@ -11,3 +11,6 @@ class FilterAction(BaseAction):
 
     def to_code(self) -> str:
         return f"df = df[{self.mask.to_code()}]"
+
+    def get_used_columns(self) -> Set[str]:
+        return self.mask.get_used_columns()
