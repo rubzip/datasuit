@@ -14,7 +14,7 @@ class BaseAction(ABC):
         pass
 
     @abstractmethod
-    def to_code(self) -> str:
+    def to_code(self) -> List[str]:
         """Returns pandas code for specific transformation."""
         pass
 
@@ -23,4 +23,4 @@ class BaseAction(ABC):
         pass
 
     def __str__(self):
-        return self.to_code()
+        return '\n'.join(self.to_code())
