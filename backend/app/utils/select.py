@@ -1,8 +1,17 @@
-from typing import List
+from backend.app.utils.mask import BaseMask
 import pandas as pd
 
 
-def select_columns(df: pd.DataFrame, columns: List[str] = None) -> pd.DataFrame:
-    if columns is None:
+class SelectAction(BaseAction):
+    def __init__(self, columns: List[str] = None):
+        self.columns = columns
+
+    def apply(self, df: pd.DataFrame) -> pd.DataFrame:
+        if columns:
+            return df[self.columns]
         return df
-    return df[columns]
+
+    def to_code(self) -> str:
+        if columns:
+            return f"df = df[{self.columns}]"
+        return ""
