@@ -16,13 +16,13 @@ class SelectAction(BaseAction):
             out = out.head()
         return out
 
-    def to_code(self) -> str:
-        lines = []
+    def to_code(self) -> List[str]:
+        code = []
         if self.columns:
-            return lines.append(f"df = df[{self.columns}]")
+            code.append(f"df = df[{self.columns}]")
         if self.limit is not None:
-            return lines.append(f"df = df.head({self.limit})")
-        return '\n'.join(lines)
+            code.append(f"df = df.head({self.limit})")
+        return code
 
     def get_used_columns(self) -> Set[str]:
         if self.columns:

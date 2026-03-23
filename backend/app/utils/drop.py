@@ -1,31 +1,30 @@
 from typing import List, Set
 import pandas as pd
-from backend.app.utils.base import BaseAction
+from app.utils.base import Action
 
 
-class BaseDrop(BaseAction):
+class BaseDrop(Action):
+    METHOD_NAME = ""
     def __init__(self, columns: List[str] = None):
         self.columns = columns
 
     def get_used_columns(self) -> Set[str]:
         return set(self.columns)
+    
+    def to_code(self) -> List[str]:
+        subset = f"subset={self.columns}" if self.columns else ""
+        return [f"df = df.{self.METHOD_NAME}({subset})"]
 
 class DropNARows(BaseDrop):
+    METHOD_NAME = "dropna"
     def apply(self, df: pd.DataFrame) -> pd.DataFrame:
         if self.columns:
             return df.dropna(subset=self.columns)
         return df.dropna()
 
-    def to_code(self) -> str:
-        subset = f"subset={self.columns}" if self.columns else ""
-        return f"df = df.dropna({subset})"
-
 class DropDuplicates(BaseDrop):
+    METHOD_NAME = "drop_duplicates"
     def apply(self, df: pd.DataFrame) -> pd.DataFrame:
         if self.columns:
             return df.drop_duplicates(subset=self.columns)
         return df.drop_duplicates()
-
-    def to_code(self) -> str:
-        subset = f"subset={self.columns}" if self.columns else ""
-        return f"df = df.drop_duplicates({subset})"

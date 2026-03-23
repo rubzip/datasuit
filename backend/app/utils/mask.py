@@ -1,13 +1,9 @@
 from abc import abstractmethod
 from typing import List, Any, Dict, Type
 import pandas as pd
-from core.constants import AcceptedTypes
-from utils.base import BaseAction
+from app.core.constants import AcceptedTypes
+from app.utils.base import Mask
 
-class Mask(BaseAction):
-    @abstractmethod
-    def apply(self, df: pd.DataFrame) -> pd.Series[bool]:
-        raise NotImplementedError
 
 class ColumnMask(Mask):
     """Works over a columns"""

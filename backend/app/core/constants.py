@@ -1,14 +1,14 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class AcceptedTypes(Enum):
+class AcceptedTypes(StrEnum):
     NUMERIC = "numeric"
     STRING = "string"
     DATETIME = "datetime"
     BOOLEAN = "boolean"
 
 
-class FilterOperator(Enum):
+class FilterOperator(StrEnum):
     EQUAL = "eq"
     NOT_EQUAL = "ne"
     GREATER = "gt"
@@ -27,7 +27,7 @@ class FilterOperator(Enum):
     IDENTITY = "identity"
 
 
-class CompositionOperator(Enum):
+class CompositionOperator(StrEnum):
     AND = "and"
     OR = "or"
     NOT = "not"

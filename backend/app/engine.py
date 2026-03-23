@@ -5,30 +5,30 @@ from app.utils.select import SelectAction
 from app.utils.filter import FilterAction
 from app.utils.drop import DropNARows, DropDuplicates
 from app.utils.mask import get_mask
-from app.utils.base import BaseAction
+from app.utils.base import Action
 
 
 class QueryEngine:
     def __init__(self, q: Query):
-        self.pipeline: List[BaseAction] = self._build_pipeline()
+        self.pipeline: List[Action] = self._build_pipeline(q)
 
-    def _build_pipeline(self) -> List[BaseAction]:
+    def _build_pipeline(self, q: Query) -> List[Action]:
         actions = []
         
-        if self.query.dropna:
+        if q.dropna:
             actions.append(DropNARows())
-        if self.query.drop_duplicates:
+        if q.drop_duplicates:
             actions.append(DropDuplicates())
             
-        if self.query.where:
-            mask = get_mask(self.query.where)
+        if q.where:
+            mask = get_mask(q.where)
             actions.append(FilterAction(mask))
             
-        if self.query.select or self.query.limit is not None or self.query.offset is not None:
+        if q.select or q.limit is not None or q.offset is not None:
             actions.append(SelectAction(
-                columns=self.query.select, 
-                limit=self.query.limit, 
-                offset=self.query.offset
+                columns=q.select, 
+                limit=q.limit, 
+                offset=q.offset
             ))
             
         return actions
@@ -52,4 +52,4 @@ class QueryEngine:
         return used_columns
     
     def get_code(self) -> List[str]:
-        return [a.to_code() for a in self.pipeline]
+        return [c for a in self.pipeline for c in a.to_code()]

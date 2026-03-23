@@ -1,10 +1,10 @@
 from typing import Set, List, Optional, Literal
 import pandas as pd
 from app.schemas import OrderItem
-from app.utils.base import BaseAction
+from app.utils.base import Action
 
 
-class SortAction(BaseAction):
+class SortAction(Action):
     def __init__(self, by: Optional[List[OrderItem]] = None, na_position=Literal["last"]):
         if not by:
             self.columns = []
@@ -18,10 +18,10 @@ class SortAction(BaseAction):
             return df
         return df.sort_values(by=self.columns, ascending=self.ascending, na_position='last')
 
-    def to_code(self) -> str:
+    def to_code(self) -> List[str]:
         if not self.columns:
-            return ""
-        return f"df = df.sort_values(by={self.columns}, ascending={self.ascending}, na_position='{self.na_position}')"
+            return []
+        return [f"df = df.sort_values(by={self.columns}, ascending={self.ascending}, na_position='{self.na_position}')"]
 
     def get_used_columns(self) -> Set[str]:
         if self.columns:
