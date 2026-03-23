@@ -15,3 +15,8 @@ class SelectAction(BaseAction):
         if columns:
             return f"df = df[{self.columns}]"
         return ""
+
+    def get_used_columns(self) -> Set[str]:
+        if self.columns:
+            return set(self.columns)
+        return set()
