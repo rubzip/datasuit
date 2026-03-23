@@ -7,7 +7,7 @@ from utils.base import BaseAction
 class Mask(BaseAction):
     @abstractmethod
     def apply(self, df: pd.DataFrame) -> pd.Series[bool]:
-        pass
+        raise NotImplementedError
 
 class ColumnMask(Mask):
     """Works over a columns"""
@@ -157,7 +157,7 @@ class BinaryMask(Mask):
         return f"{left_str} {self.SYMBOL} {right_str}"
     
     def get_used_columns(self) -> set[str]:
-        return self.left.get_columns().union(self.right.get_columns())
+        return self.left.get_used_columns().union(self.right.get_used_columns())
 
 class AndMask(BinaryMask):
     SYMBOL = "&"
@@ -184,7 +184,7 @@ class NotMask(BinaryMask):
         return f"{self.SYMBOL} {left_str}"
     
     def get_used_columns(self) -> set[str]:
-        return self.left.get_columns()
+        return self.left.get_used_columns()
 
 
 from app.core.constants import FilterOperator, CompositionOperator
