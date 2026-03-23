@@ -1,9 +1,13 @@
+from typing import List, Set
 from backend.app.utils.base import BaseAction
 
 
 class BaseDrop(BaseAction):
     def __init__(self, columns: List[str] = None):
         self.columns = columns
+
+    def get_used_columns(self) -> Set[str]:
+        return set(self.columns)
 
 class DropNARows(BaseDrop):
     def apply(self, df: DataFrame) -> pd.DataFrame:
