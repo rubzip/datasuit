@@ -23,3 +23,9 @@ class SortAction(BaseAction):
         if not self.columns:
             return ""
         return f"df = df.sort_values(by={self.columns}, ascending={self.ascending}, na_position='{self.na_position}')"
+
+    def get_used_columns(self) -> Set[str]:
+        if self.columns:
+            return set(self.columns)
+        return set()
+
