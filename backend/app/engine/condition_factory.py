@@ -1,22 +1,35 @@
-from typing import Dict
+from typing import Dict, Union
 from app.operations.base import Condition
-from app.operations.condition.base import ColumnCondition, LogicalCondition
-from app.operations.condition.comparison import (
-    EqualsCondition, NotEqualsCondition, GreaterThanCondition, GreaterThanOrEqualsCondition, LessThanCondition, LessThanOrEqualsCondition
+from app.operations.conditions import (
+    ColumnCondition,
+    LogicalCondition,
+    EqualsCondition,
+    NotEqualsCondition,
+    GreaterThanCondition,
+    GreaterThanOrEqualsCondition,
+    LessThanCondition,
+    LessThanOrEqualsCondition,
+    IsNullCondition,
+    IsNotNullCondition,
+    IdentityCondition,
+    ContainsCondition,
+    StartsWithCondition,
+    EndsWithCondition,
+    InCondition,
+    AndCondition,
+    OrCondition,
+    NotCondition,
 )
-from app.operations.condition.null import IsNullCondition, IsNotNullCondition, BooleanIdentityCondition
-from app.operations.condition.string import ContainsCondition, StartsWithCondition, EndsWithCondition
-from app.operations.condition.membership import InCondition
-from app.operations.condition.logical import AndCondition, OrCondition, NotCondition
 
 from app.core.constants import FilterOperator, CompositionOperator
 from app.schemas.conditions import (
-    ConditionTypeSchema, ComparisonConditionSchema, NullCheckConditionSchema, 
-    MembershipConditionSchema, CompositeConditionSchema
+    ConditionTypeSchema,
+    CompositeConditionSchema,
+    SingleConditionSchema,
 )
 from app.engine.cast_type import cast_typed_value, cast_typed_list
 
-# Mapas de diccionarios (igual que los tenías)
+
 class ConditionFactory:
     MAPPER_CONDITION: Dict[FilterOperator, type[ColumnCondition]] = {
         FilterOperator.EQUAL: EqualsCondition,
@@ -30,7 +43,8 @@ class ConditionFactory:
         FilterOperator.CONTAINS: ContainsCondition,
         FilterOperator.STARTSWITH: StartsWithCondition,
         FilterOperator.ENDSWITH: EndsWithCondition,
-        FilterOperator.IDENTITY: BooleanIdentityCondition,
+        FilterOperator.IDENTITY: IdentityCondition,
+        FilterOperator.IS_IN: InCondition,
     }
 
     MAPPER_COMPOSITION: Dict[CompositionOperator, type[LogicalCondition]] = {
@@ -40,45 +54,39 @@ class ConditionFactory:
     }
 
     @classmethod
-    def condition_factory(cls, condition: ConditionTypeSchema) -> Condition:
-        """
-        Convierte un Schema Pydantic validado en una Operación ejecutable de Pandas.
-        """
-        if isinstance(condition, CompositeConditionSchema):
-            left_node = cls.condition_factory(condition.left_condition)
-            right_node = cls.condition_factory(condition.right_condition) if condition.right_condition else None
-            
-            op_class = cls.get_composition_class(condition)
-            return op_class(left=left_node, right=right_node)
+    def build_condition(cls, schema: ConditionTypeSchema) -> Condition:
+        if isinstance(schema, CompositeConditionSchema):
+            left = cls.build_condition(schema.left_condition)
+            right = (
+                cls.build_condition(schema.right_condition)
+                if schema.right_condition
+                else None
+            )
+            op_class = cls.MAPPER_COMPOSITION[schema.operator]
+            return op_class(left=left, right=right)
 
-        op_class = cls.get_condition_class(condition)
-        if isinstance(condition, ComparisonConditionSchema):
-            real_value = cast_typed_value(condition.value)
-            return op_class(column=condition.column, value=real_value)
+        if isinstance(schema, SingleConditionSchema):
+            op_class = cls.MAPPER_CONDITION[schema.operator]
 
-        if isinstance(condition, NullCheckConditionSchema):
-            return op_class(column=condition.column)
+            if schema.value:
+                real_val = cast_typed_value(schema.value)
+                return op_class(column=schema.column, value=real_val)
+            elif schema.values:
+                real_list = cast_typed_list(schema.values)
+                return op_class(column=schema.column, value=real_list)
+            else:
+                return op_class(column=schema.column)
 
-        if isinstance(condition, MembershipConditionSchema):
-            real_list = cast_typed_list(condition.values)
-            return op_class(column=condition.column, value=real_list)
-
-        raise ValueError(f"Unknown condition type: {type(condition)}")
-    
     @classmethod
-    def build_condition(cls, condition: ConditionTypeSchema) -> Condition:
-        return cls.condition_factory(condition)
-    
-    @classmethod
-    def get_condition_class(cls, condition: ConditionTypeSchema) -> type[Condition]:
-        op_class = cls.MAPPER_CONDITION.get(condition.operator)
+    def get_condition_class(cls, operator: FilterOperator) -> type[Condition]:
+        op_class = cls.MAPPER_CONDITION.get(operator)
         if not op_class:
-            raise ValueError(f"Unknown composition operator: {condition.operator}")
+            raise ValueError(f"Unknown filter operator: {operator}")
         return op_class
 
     @classmethod
-    def get_composition_class(cls, condition: ConditionTypeSchema) -> type[Condition]:
-        op_class = cls.MAPPER_COMPOSITION.get(condition.operator)
+    def get_composition_class(cls, operator: CompositionOperator) -> type[Condition]:
+        op_class = cls.MAPPER_COMPOSITION.get(operator)
         if not op_class:
-            raise ValueError(f"Unknown composition operator: {condition.operator}")
+            raise ValueError(f"Unknown composition operator: {operator}")
         return op_class

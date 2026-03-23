@@ -24,7 +24,10 @@ class BaseComponent(ABC):
         pass
 
     def __str__(self):
-        return '\n'.join(self.to_code())
+        code = self.to_code()
+        if isinstance(code, str):
+            return code
+        return "\n".join(code)
 
 
 class Operation(BaseComponent):
@@ -33,6 +36,14 @@ class Operation(BaseComponent):
 
 class Condition(BaseComponent):
     @abstractmethod
-    def apply(self, df: pd.DataFrame) -> pd.Series[bool]:
+    def apply(self, df: pd.DataFrame) -> pd.Series:
         """Applies logic to DataFrame."""
         pass
+
+    @abstractmethod
+    def to_code(self) -> str:
+        """Returns pandas code for the condition as a string."""
+        pass
+
+    def __str__(self):
+        return self.to_code()

@@ -33,4 +33,5 @@ class CompositionOperator(StrEnum):
     OR = "or"
     NOT = "not"
 
+
 OperatorType = Union[FilterOperator, CompositionOperator]

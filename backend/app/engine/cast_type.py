@@ -16,9 +16,14 @@ def cast_typed_value(typed_value: TypedValue) -> Union[float, bool, str, pd.Time
             return pd.to_datetime(typed_value.value)
         raise ValueError(f"Unsupported type: {typed_value.type}")
     except Exception as e:
-        raise TypeError(f"Error casting value {typed_value.value} to type {typed_value.type}: {e}")
+        raise TypeError(
+            f"Error casting value {typed_value.value} to type {typed_value.type}: {e}"
+        )
 
-def cast_typed_list(typed_list: TypedList) -> List[Union[float, bool, str, pd.Timestamp]]:
+
+def cast_typed_list(
+    typed_list: TypedList,
+) -> List[Union[float, bool, str, pd.Timestamp]]:
     try:
         if typed_list.type == AcceptedTypes.NUMERIC:
             return [float(v) for v in typed_list.value]
@@ -30,4 +35,6 @@ def cast_typed_list(typed_list: TypedList) -> List[Union[float, bool, str, pd.Ti
             return [pd.to_datetime(v) for v in typed_list.value]
         raise ValueError(f"Unsupported type: {typed_list.type}")
     except Exception as e:
-        raise TypeError(f"Error casting value {typed_list.value} to type {typed_list.type}: {e}")
+        raise TypeError(
+            f"Error casting value {typed_list.value} to type {typed_list.type}: {e}"
+        )

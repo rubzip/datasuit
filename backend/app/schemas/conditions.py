@@ -1,54 +1,47 @@
-from typing import List, Optional, Union, Literal
-from pydantic import BaseModel, Field
-from app.core.constants import FilterOperator, CompositionOperator, OperatorType
+from typing import Optional, Union
+from pydantic import BaseModel, model_validator
+from app.core.constants import FilterOperator, CompositionOperator
 from app.schemas.base import TypedValue, TypedList
 
 
-class BaseConditionSchema(BaseModel):
-    operator: OperatorType
-
-class BaseSingleConditionSchema(BaseModel):
+class SingleConditionSchema(BaseModel):
     column: str
+    operator: FilterOperator
+    value: Optional[TypedValue] = None
+    values: Optional[TypedList] = None
 
-class ComparisonConditionSchema(BaseSingleConditionSchema):
-    operator: Literal[
-        FilterOperator.EQUAL, 
-        FilterOperator.NOT_EQUAL,
-        FilterOperator.GREATER,
-        FilterOperator.LESS,
-        FilterOperator.CONTAINS,
-        FilterOperator.STARTSWITH,
-        FilterOperator.ENDSWITH,
-        FilterOperator.IS_NULL,
-        FilterOperator.IS_NOT_NULL,
-        FilterOperator.IS_IN,
-        FilterOperator.IS_NOT_IN
-    ]
-    value: TypedValue
+    @model_validator(mode="after")
+    def validate_operator_values(self):
+        # Reglas simples y legibles:
+        null_ops = [
+            FilterOperator.IS_NULL,
+            FilterOperator.IS_NOT_NULL,
+            FilterOperator.IDENTITY,
+        ]
+        list_ops = [FilterOperator.IS_IN, FilterOperator.IS_NOT_IN]
 
-class NullCheckConditionSchema(BaseSingleConditionSchema):
-    operator: Literal[
-        FilterOperator.IS_NULL, 
-        FilterOperator.IS_NOT_NULL,
-    ]
+        if self.operator in null_ops:
+            if self.value or self.values:
+                raise ValueError(f"Operator {self.operator} doesn't take values.")
+        elif self.operator in list_ops:
+            if not self.values:
+                raise ValueError(
+                    f"Operator {self.operator} requires 'values' (a list)."
+                )
+        else:
+            if not self.value:
+                raise ValueError(f"Operator {self.operator} requires 'value'.")
 
-class MembershipConditionSchema(BaseSingleConditionSchema):
-    operator: Literal[
-        FilterOperator.IS_IN, 
-        FilterOperator.IS_NOT_IN
-    ]
-    values: TypedList
+        return self
 
-SingleConditionSchema = Union[
-    ComparisonConditionSchema, 
-    NullCheckConditionSchema, 
-    MembershipConditionSchema
-]
 
-class CompositeConditionSchema(BaseConditionSchema):
+class CompositeConditionSchema(BaseModel):
     left_condition: Union[SingleConditionSchema, "CompositeConditionSchema"]
     operator: CompositionOperator
-    right_condition: Optional[Union[SingleConditionSchema, "CompositeConditionSchema"]] = None
+    right_condition: Optional[
+        Union[SingleConditionSchema, "CompositeConditionSchema"]
+    ] = None
+
 
 CompositeConditionSchema.model_rebuild()
 
