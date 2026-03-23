@@ -184,7 +184,7 @@ class OrMask(BinaryMask):
 
 # -- Unary Masks --
 
-class NotMask(BaseMask):
+class NotMask(BinaryMask):
     SYMBOL = "~"
     def __init__(self, left: BaseMask, right: BaseMask = None):
         self.left = left
