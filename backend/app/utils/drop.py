@@ -1,9 +1,26 @@
-def drop_na(df: pd.DataFrame, columns: List[str] = None) -> pd.DataFrame:
-    if columns is None:
-        return df.dropna()
-    return df.dropna(subset=columns)
+from backend.app.utils.base import BaseAction
 
-def drop_duplicates(df: pd.DataFrame, columns: List[str] = None) -> pd.DataFrame:
-    if columns is None:
+
+class BaseDrop(BaseAction):
+    def __init__(self, columns: List[str] = None):
+        self.columns = columns
+
+class DropNARows(BaseDrop):
+    def apply(self, df: DataFrame) -> pd.DataFrame:
+        if self.columns:
+            return df.dropna(subset=self.columns)
+        return df.dropna()
+
+    def to_code(self) -> str:
+        subset = f"subset={self.columns}" if self.columns else ""
+        return f"df = df.dropna({subset})"
+
+class DropDuplicates(BaseDrop):
+    def apply(self, df: DataFrame) -> pd.DataFrame:
+        if self.columns:
+            return df.drop_duplicates(subset=self.columns)
         return df.drop_duplicates()
-    return df.drop_duplicates(subset=columns)
+
+    def to_code(self) -> str:
+        subset = f"subset={self.columns}" if self.columns else ""
+        return f"df = df.drop_duplicates({subset})"
