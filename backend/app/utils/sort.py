@@ -1,8 +1,7 @@
-from typing import List
+from typing import Set, List, Optional, Literal
 import pandas as pd
 from app.schemas import OrderItem
-from backend.app.utils.mask import BaseMask
-import pandas as pd
+from app.utils.base import BaseAction
 
 
 class SortAction(BaseAction):
@@ -17,7 +16,7 @@ class SortAction(BaseAction):
     def apply(self, df: pd.DataFrame) -> pd.DataFrame:
         if not self.columns:
             return df
-        return df.sort_values(by=columns, ascending=ascending, na_position='last')
+        return df.sort_values(by=self.columns, ascending=self.ascending, na_position='last')
 
     def to_code(self) -> str:
         if not self.columns:
@@ -28,4 +27,3 @@ class SortAction(BaseAction):
         if self.columns:
             return set(self.columns)
         return set()
-
