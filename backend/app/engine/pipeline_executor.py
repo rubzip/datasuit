@@ -5,7 +5,12 @@ from app.operations.select import SelectOperation
 from app.operations.filter import FilterOperation
 from app.operations.sort import SortOperation
 from app.operations.drop import DropNAOperation, DropDuplicatesOperation
+from app.operations.cast import CastOperation
+from app.operations.replace import ReplaceValueOperation
+from app.operations.insert import InsertValueOperation, InsertValueByIndexOperation
+from app.operations.rename import RenameColumnOperation
 from app.engine.condition_factory import ConditionFactory
+from app.engine.cast_type import cast_typed_value
 from app.operations.base import Operation
 
 
@@ -20,8 +25,31 @@ class PipelineExecutor:
 
         if pipeline.dropna:
             operations.append(DropNAOperation())
+
         if pipeline.drop_duplicates:
             operations.append(DropDuplicatesOperation())
+
+        if pipeline.cast:
+            for col, to_type in pipeline.cast.items():
+                operations.append(CastOperation(col, to_type))
+
+        if pipeline.replace:
+            for r in pipeline.replace:
+                old_val = cast_typed_value(r.old_value)
+                new_val = cast_typed_value(r.new_value)
+                operations.append(ReplaceValueOperation(r.column, old_val, new_val))
+
+        if pipeline.insert:
+            for i in pipeline.insert:
+                val = cast_typed_value(i.value)
+                if i.index is not None:
+                    idx = cast_typed_value(i.index)
+                    operations.append(InsertValueByIndexOperation(idx, i.column, val))
+                else:
+                    operations.append(InsertValueOperation(i.column, val))
+
+        if pipeline.rename:
+            operations.append(RenameColumnOperation(pipeline.rename))
 
         if pipeline.where:
             condition = ConditionFactory.build_condition(pipeline.where)
@@ -44,16 +72,10 @@ class PipelineExecutor:
 
         return operations
 
-    def validate(self, df: pd.DataFrame):
-        used_cols = self.get_used_columns()
-        missing = used_cols - set(df.columns)
-        if missing:
-            raise ValueError(f"Missing columns: {missing}")
-
     def apply(self, df: pd.DataFrame) -> pd.DataFrame:
-        self.validate(df)
         out = df.copy()
         for operation in self.pipeline:
+            operation.validate(out)
             out = operation.apply(out)
         return out
 

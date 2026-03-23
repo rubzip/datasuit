@@ -3,8 +3,8 @@ import pandas as pd
 from app.engine.pipeline_executor import PipelineExecutor
 from app.schemas.pipeline import PipelineConfig
 from app.schemas.conditions import SingleConditionSchema
-from app.schemas.base import OrderItem
-from app.core.constants import FilterOperator
+from app.core.constants import FilterOperator, AcceptedTypes
+from app.schemas.base import OrderItem, ReplaceConfig, InsertConfig
 
 def test_pipeline_complex_execution(sample_df):
     # Pipeline:
@@ -43,3 +43,34 @@ def test_executor_empty_pipeline(sample_df):
     executor = PipelineExecutor(PipelineConfig())
     result = executor.apply(sample_df)
     pd.testing.assert_frame_equal(result, sample_df)
+
+def test_pipeline_new_operations(sample_df):
+    # Pipeline:
+    # 1. Cast age to string
+    # 2. Replace 'Alice' with 'Alicia' in name
+    # 3. Insert 'country' column with 'Spain'
+    # 4. Rename 'salary' to 'wage'
+    
+    config = PipelineConfig(
+        cast={'age': AcceptedTypes.STRING},
+        replace=[ReplaceConfig(
+            column='name', 
+            old_value={'type': AcceptedTypes.STRING, 'value': 'Alice'}, 
+            new_value={'type': AcceptedTypes.STRING, 'value': 'Alicia'}
+        )],
+        insert=[InsertConfig(
+            column='country', 
+            value={'type': AcceptedTypes.STRING, 'value': 'Spain'}
+        )],
+        rename={'salary': 'wage'}
+    )
+    
+    executor = PipelineExecutor(config)
+    result = executor.apply(sample_df)
+    
+    # Assertions
+    assert result['age'].dtype == object or pd.api.types.is_string_dtype(result['age'])
+    assert result['name'].iloc[0] == 'Alicia'
+    assert (result['country'] == 'Spain').all()
+    assert 'wage' in result.columns
+    assert 'salary' not in result.columns

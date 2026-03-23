@@ -1,7 +1,8 @@
-from typing import List, Optional
+from typing import List, Optional, Dict
 from pydantic import BaseModel
-from app.schemas.base import OrderItem
+from app.schemas.base import OrderItem, ReplaceConfig, InsertConfig
 from app.schemas.conditions import ConditionTypeSchema
+from app.core.constants import AcceptedTypes
 
 
 class PipelineConfig(BaseModel):
@@ -13,3 +14,8 @@ class PipelineConfig(BaseModel):
 
     dropna: bool = False
     drop_duplicates: bool = False
+
+    rename: Optional[Dict[str, str]] = None
+    replace: Optional[List[ReplaceConfig]] = None
+    insert: Optional[List[InsertConfig]] = None
+    cast: Optional[Dict[str, AcceptedTypes]] = None

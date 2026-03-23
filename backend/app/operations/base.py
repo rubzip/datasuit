@@ -28,6 +28,12 @@ class BaseComponent(ABC):
         if isinstance(code, str):
             return code
         return "\n".join(code)
+    
+    def validate(self, df: pd.DataFrame):
+        used_cols = self.get_used_columns()
+        missing = used_cols - set(df.columns)
+        if missing:
+            raise ValueError(f"Missing columns: {missing}")
 
 
 class Operation(BaseComponent):
