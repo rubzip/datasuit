@@ -1,8 +1,7 @@
-from abc import abstractmethod
 from typing import List, Any, Dict, Type
 import pandas as pd
 from app.core.constants import AcceptedTypes
-from app.utils.base import Mask
+from app.actions.base import Mask
 
 
 class ColumnMask(Mask):
@@ -68,6 +67,13 @@ class NoValueMask(ColumnMask):
     
     def to_code(self) -> str:
         return f"df['{self.column}'].{self.METHOD}()"
+
+class IdentityMask(ColumnMask):
+    def apply(self, df: pd.DataFrame) -> pd.Series[bool]:
+        return df[self.column].astype(bool)
+    
+    def to_code(self) -> str:
+        return f"df['{self.column}']"
 
 class IsNullMask(NoValueMask):
     METHOD = "isnull"
@@ -181,64 +187,3 @@ class NotMask(BinaryMask):
     
     def get_used_columns(self) -> set[str]:
         return self.left.get_used_columns()
-
-
-from app.core.constants import FilterOperator, CompositionOperator
-
-MAPPER_MASK = {
-    FilterOperator.EQUAL: EqualMask,
-    FilterOperator.NOT_EQUAL: NotEqualMask,
-    FilterOperator.GREATER: GreaterMask,
-    FilterOperator.GREATER_EQUAL: GreaterEqualMask,
-    FilterOperator.LESS: LessMask,
-    FilterOperator.LESS_EQUAL: LessEqualMask,
-    FilterOperator.IS_NULL: IsNullMask,
-    FilterOperator.IS_NOT_NULL: IsNotNullMask,
-    FilterOperator.CONTAINS: ContainsMask,
-    FilterOperator.NOT_CONTAINS: NotContainsMask,
-    FilterOperator.STARTSWITH: StartsWithMask,
-    FilterOperator.ENDSWITH: EndsWithMask,
-    FilterOperator.IS_IN: IsInMask,
-    FilterOperator.IS_NOT_IN: IsNotInMask,
-    FilterOperator.IDENTITY: IdentityMask,
-}
-
-MAPPER_COMPOSITION = {
-    CompositionOperator.AND: AndMask,
-    CompositionOperator.OR: OrMask,
-    CompositionOperator.NOT: NotMask,
-}
-
-from typing import Any, Union
-import datetime
-from app.schemas import FilterCondition, ComposedFilterCondition, TypedValue
-
-
-def cast(value: Union[TypedValue, List[TypedValue]]) -> Any:
-    if isinstance(value, list):
-        return [cast(v) for v in value]
-    if not isinstance(value, TypedValue):
-        return value
-    if value.type == AcceptedTypes.NUMERIC:
-        return float(value.value)
-    if value.type == AcceptedTypes.STRING:
-        return str(value.value)
-    if value.type == AcceptedTypes.DATETIME:
-        return datetime.fromisoformat(value.value)
-    if value.type == AcceptedTypes.BOOLEAN:
-        return bool(value.value)
-    raise NotImplementedError(f"Invalid type: {value.type}")
-
-
-def get_mask(f: Union[FilterCondition, ComposedFilterCondition]) -> BaseMask:
-    if isinstance(f, ComposedFilterCondition):
-        return MAPPER_COMPOSITION.get(f.operator)(
-            left=get_mask(f.left_condition),
-            right=get_mask(f.right_condition)
-        )
-    if isinstance(f, FilterCondition):
-        return MAPPER_MASK.get(f.operator)(
-            column=f.column,
-            value=cast(f.value)
-        )
-    raise ValueError(f"Invalid filter operator: {f}")

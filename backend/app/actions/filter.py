@@ -1,7 +1,7 @@
 from typing import Set, List
 import pandas as pd
-from app.utils.base import Action
-from app.utils.mask import Mask
+from app.actions.base import Action
+from app.actions.mask import Mask
 
 
 class FilterAction(Action):

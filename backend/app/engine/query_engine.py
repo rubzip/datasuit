@@ -1,11 +1,11 @@
 from typing import Set, List
 import pandas as pd
 from app.schemas import Query
-from app.utils.select import SelectAction
-from app.utils.filter import FilterAction
-from app.utils.drop import DropNARows, DropDuplicates
-from app.utils.mask import get_mask
-from app.utils.base import Action
+from app.actions.select import SelectAction
+from app.actions.filter import FilterAction
+from app.actions.drop import DropNARows, DropDuplicates
+from app.actions.mask import get_mask
+from app.actions.base import Action
 
 
 class QueryEngine:

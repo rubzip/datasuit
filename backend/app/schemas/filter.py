@@ -8,38 +8,21 @@ class TypedValue(BaseModel):
     value: str
 
 
-class FilterCondition(BaseModel):
+class Filter(BaseModel):
+    operator: Union[FilterOperator, CompositionOperator]
+
+
+class FilterCondition(Filter):
     column: str
     operator: FilterOperator
-    value: Optional[TypedValue] = None
-
-    def get_columns(self) -> Set[str]:
-        return {self.column}
+    value: Optional[TypedValue] = None # Maybe should exist the possibility of list fro IN operator
+    values: Optional[List[TypedValue]] = None # For IN operator
 
 
-class ComposedFilterCondition(BaseModel):
+class ComposedFilterCondition(Filter):
     left_condition: Union[FilterCondition, "ComposedFilterCondition"]
     operator: CompositionOperator
     right_condition: Optional[Union[FilterCondition, "ComposedFilterCondition"]] = None
 
-    def get_columns(self) -> Set[str]:
-        cols = self.left_condition.get_columns()
-        if self.right_condition:
-            cols = cols.union(self.right_condition.get_columns())
-        return cols
-
 
 ComposedFilterCondition.model_rebuild()
-
-
-def get_columns(condition: Union[FilterCondition, ComposedFilterCondition, None]) -> Set[str]:
-    if condition is None:
-        return set()
-    if isinstance(condition, FilterCondition):
-        return {condition.column}
-    if isinstance(condition, ComposedFilterCondition):
-        cols = get_columns(condition.left_condition)
-        if condition.right_condition:
-            cols = cols.union(get_columns(condition.right_condition))
-        return cols
-    raise ValueError(f"Unsupported condition type: {type(condition)}")

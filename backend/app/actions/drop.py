@@ -1,6 +1,6 @@
 from typing import List, Set
 import pandas as pd
-from app.utils.base import Action
+from app.actions.base import Action
 
 
 class BaseDrop(Action):

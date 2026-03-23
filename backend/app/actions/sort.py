@@ -1,7 +1,7 @@
 from typing import Set, List, Optional, Literal
 import pandas as pd
 from app.schemas import OrderItem
-from app.utils.base import Action
+from app.actions.base import Action
 
 
 class SortAction(Action):

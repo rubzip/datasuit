@@ -9,6 +9,11 @@ class BaseComponent(ABC):
     """
 
     @abstractmethod
+    def apply(self, df: pd.DataFrame) -> pd.DataFrame:
+        """Applies logic to DataFrame."""
+        pass
+
+    @abstractmethod
     def to_code(self) -> List[str]:
         """Returns pandas code for specific transformation."""
         pass
@@ -23,10 +28,7 @@ class BaseComponent(ABC):
 
 
 class Action(BaseComponent):
-    @abstractmethod
-    def apply(self, df: pd.DataFrame) -> pd.DataFrame:
-        """Applies logic to DataFrame."""
-        pass
+    pass
 
 
 class Mask(BaseComponent):

@@ -1,9 +1,9 @@
 from typing import List, Set
 import pandas as pd
-from backend.app.utils.base import BaseAction
+from app.actions.base import Action
 
 
-class SelectAction(BaseAction):
+class SelectAction(Action):
     def __init__(self, columns: List[str] = None, limit: int = None):
         self.columns = columns
         self.limit = limit
