@@ -1,83 +1,77 @@
-from matplotlib.pyplot import isinteractive
+from abc import abstractmethod
 from typing import List, Any, Dict, Type
 import pandas as pd
-from app.core.constants import AcceptedTypes
+from core.constants import AcceptedTypes
+from utils.base import BaseAction
 
+class Mask(BaseAction):
+    @abstractmethod
+    def apply(self, df: pd.DataFrame) -> pd.Series[bool]:
+        pass
 
-class BaseMask:
-    SYMBOL = ""
-
+class ColumnMask(Mask):
+    """Works over a columns"""
     def __init__(self, column: str, value: Any):
         self.column = column
         self.value = value
-
-    def apply(self, df: pd.DataFrame) -> pd.Series[bool]:
-        raise NotImplementedError
     
-    def __str__(self):
-        return f"df['{self.column}'] {self.SYMBOL} {self.value}"
-    
-    def to_code(self) -> str:
-        return str(self)
-    
+    def get_used_columns(self) -> set[str]:
+        return {self.column}
 
 # -- Comparison Filters --
 
-
-class IdentityMask(BaseMask):
-    def apply(self, df: pd.DataFrame) -> pd.Series[bool]:
-        return df[self.column].astype(bool)
+class ComparisonMask(ColumnMask):
+    SYMBOL = ""
+    def __init__(self, column: str, value: Any):
+        super().__init__(column, value)
     
-    def __str__(self):
-        return f"df['{self.column}'].astype(bool)"
+    def to_code(self):
+        return f"df['{self.column}'] {self.SYMBOL} {self.value}"
 
-class EqualMask(BaseMask):
+class EqualMask(ComparisonMask):
     SYMBOL = "=="
     def apply(self, df: pd.DataFrame) -> pd.Series[bool]:
         return df[self.column] == self.value
 
 
-class NotEqualMask(BaseMask):
+class NotEqualMask(ComparisonMask):
     SYMBOL = "!="
     def apply(self, df: pd.DataFrame) -> pd.Series[bool]:
         return df[self.column] != self.value
 
 
-class GreaterMask(BaseMask):
+class GreaterMask(ComparisonMask):
     SYMBOL = ">"
     def apply(self, df: pd.DataFrame) -> pd.Series[bool]:
         return df[self.column] > self.value
 
 
-class GreaterEqualMask(BaseMask):
+class GreaterEqualMask(ComparisonMask):
     SYMBOL = ">="
     def apply(self, df: pd.DataFrame) -> pd.Series[bool]:
         return df[self.column] >= self.value
 
 
-class LessMask(BaseMask):
+class LessMask(ComparisonMask):
     SYMBOL = "<"
     def apply(self, df: pd.DataFrame) -> pd.Series[bool]:
         return df[self.column] < self.value
 
 
-class LessEqualMask(BaseMask):
+class LessEqualMask(ComparisonMask):
     SYMBOL = "<="
     def apply(self, df: pd.DataFrame) -> pd.Series[bool]:
         return df[self.column] <= self.value
 
 
 # -- Null Filters --
-
-
-class NoValueMask(BaseMask):
-    METHOD = ""
-    def __init__(self, column: str, value: Any = None):
-        self.column = column
+class NoValueMask(ColumnMask):
+    METHOD =  ""
+    def __init__(self, column, value = None):
+        super().__init__(column, value)
     
-    def __str__(self):
+    def to_code(self) -> str:
         return f"df['{self.column}'].{self.METHOD}()"
-
 
 class IsNullMask(NoValueMask):
     METHOD = "isnull"
@@ -94,15 +88,13 @@ class IsNotNullMask(NoValueMask):
 # -- String Filters --
 
 
-class StringMask(BaseMask):
+class StringMask(ColumnMask):
     METHOD = ""
     def __init__(self, column: str, value: str):
-        self.column = column
-        self.value = value
-    
+        super().__init__(column=column, value=value)
+
     def __str__(self):
         return f"df['{self.column}'].str.{self.METHOD}('{self.value}')"
-
 
 class ContainsMask(StringMask):
     METHOD = "contains"
@@ -133,44 +125,39 @@ class EndsWithMask(StringMask):
 
 # -- Membership Filters --
 
-class MembershipMask(BaseMask):
+class MembershipMask(ColumnMask):
+    NEGATION = ""
     def __init__(self, column: str, value: List[Any]):
-        self.column = column
-        self.value = value
+        super().__init__(column, value)
     
+    def to_code(self) -> str:
+        return f"{self.NEGATION}df['{self.column}'].isin({self.value})"
 
 class IsInMask(MembershipMask):
     def apply(self, df: pd.DataFrame) -> pd.Series[bool]:
         return df[self.column].isin(self.value)
-    
-    def __str__(self):
-        return f"df['{self.column}'].isin({self.value})"
-
 
 class IsNotInMask(MembershipMask):
+    NEGATION = "~"
     def apply(self, df: pd.DataFrame) -> pd.Series[bool]:
         return ~df[self.column].isin(self.value)
-    
-    def __str__(self):
-        return f"~df['{self.column}'].isin({self.value})"
 
 # -- Binary Masks --
 
-class BinaryMask(BaseMask):
+class BinaryMask(Mask):
     SYMBOL = ""
-    def __init__(self, left: BaseMask, right: BaseMask):
+    def __init__(self, left: Mask, right: Mask):
         self.left = left
         self.right = right
     
-    def apply(self, df: pd.DataFrame) -> pd.Series[bool]:
-        raise NotImplementedError
-    
-    def __str__(self):
+    def to_code(self):
         left_str = f"({self.left})" if isinstance(self.left, BinaryMask) else str(self.left)
         right_str = f"({self.right})" if isinstance(self.right, BinaryMask) else str(self.right)
         
         return f"{left_str} {self.SYMBOL} {right_str}"
-
+    
+    def get_used_columns(self) -> set[str]:
+        return self.left.get_columns().union(self.right.get_columns())
 
 class AndMask(BinaryMask):
     SYMBOL = "&"
@@ -186,16 +173,18 @@ class OrMask(BinaryMask):
 
 class NotMask(BinaryMask):
     SYMBOL = "~"
-    def __init__(self, left: BaseMask, right: BaseMask = None):
+    def __init__(self, left: Mask, right: Mask = None):
         self.left = left
     
     def apply(self, df: pd.DataFrame) -> pd.Series[bool]:
         return ~self.left.apply(df)
     
-    def __str__(self):
+    def to_code(self):
         left_str = f"({self.left})" if isinstance(self.left, BinaryMask) else str(self.left)
-        
         return f"{self.SYMBOL} {left_str}"
+    
+    def get_used_columns(self) -> set[str]:
+        return self.left.get_columns()
 
 
 from app.core.constants import FilterOperator, CompositionOperator
