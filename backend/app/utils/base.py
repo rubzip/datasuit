@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
+from typing import Any, List, Set
 import pandas as pd
-from typing import Any, List
+
 
 class BaseAction(ABC):
     """
@@ -15,6 +16,10 @@ class BaseAction(ABC):
     @abstractmethod
     def to_code(self) -> str:
         """Returns pandas code for specific transformation."""
+        pass
+
+    @abstractmethod
+    def get_used_columns(self) -> Set[str]:
         pass
 
     def __str__(self):
