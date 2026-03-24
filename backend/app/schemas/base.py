@@ -1,16 +1,16 @@
-from typing import Optional, Literal, List
+from typing import Optional, Literal, List, Any
 from pydantic import BaseModel
 from app.core.constants import AcceptedTypes
 
 
 class TypedValue(BaseModel):
     type: AcceptedTypes
-    value: str
+    value: Any
 
 
 class TypedList(BaseModel):
     type: AcceptedTypes
-    value: List[str]
+    value: List[Any]
 
 
 class OrderItem(BaseModel):

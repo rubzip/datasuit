@@ -1,5 +1,6 @@
 import pytest
 import pandas as pd
+import io
 from app.schemas.pipeline import PipelineConfig
 from app.schemas.base import OrderItem
 
@@ -19,3 +20,17 @@ def sample_df():
 @pytest.fixture
 def empty_pipeline_config():
     return PipelineConfig()
+
+
+@pytest.fixture
+def df_to_binary():
+    def _convert(df: pd.DataFrame, format: str = "csv"):
+        output = io.BytesIO()
+        if format == "csv":
+            df.to_csv(output, index=False)
+        elif format == "json":
+            df.to_json(output, orient="records")
+        output.seek(0)
+        return output
+
+    return _convert

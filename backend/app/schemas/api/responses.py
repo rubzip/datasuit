@@ -1,6 +1,7 @@
 from typing import List, Optional, Any, Dict
 from pydantic import BaseModel
 from app.core.constants import AcceptedTypes
+from app.schemas.base import TypedValue
 
 
 class ColumnStats(BaseModel):
@@ -18,8 +19,13 @@ class DataHealthReportResponse(BaseModel):
     memory_usage: str
     columns: Dict[str, ColumnStats]
 
+class Row(BaseModel):
+    index: TypedValue
+    values: Dict[str, str]
+
 
 class DatasetPreviewResponse(BaseModel):
-    data: Dict[str, List[Any]]
+    data: Dict[str, List[Any]] # Column-oriented (Efficient)
+    rows: List[Row] = [] # Row-oriented (Typed, but heavy)
     types: Dict[str, AcceptedTypes]
     health: Optional[DataHealthReportResponse] = None
